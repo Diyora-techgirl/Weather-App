@@ -13,6 +13,13 @@
 		74C930B12F99DA4A00045845 /* WeatherAppRemixApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C930A92F99DA4A00045845 /* WeatherAppRemixApp.swift */; };
 		74C930B22F99DA4A00045845 /* WeatherView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C930A72F99DA4A00045845 /* WeatherView.swift */; };
 		74C930B32F99DA4A00045845 /* WeatherModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74C930A62F99DA4A00045845 /* WeatherModels.swift */; };
+		FA0157692F9B68C700E6EF80 /* sun.json in Resources */ = {isa = PBXBuildFile; fileRef = FA0157672F9B68C700E6EF80 /* sun.json */; };
+		FA01576A2F9B68C700E6EF80 /* lightning.json in Resources */ = {isa = PBXBuildFile; fileRef = FA0157642F9B68C700E6EF80 /* lightning.json */; };
+		FA01576B2F9B68C700E6EF80 /* cloudy.json in Resources */ = {isa = PBXBuildFile; fileRef = FA0157632F9B68C700E6EF80 /* cloudy.json */; };
+		FA01576C2F9B68C700E6EF80 /* WeatherBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0157682F9B68C700E6EF80 /* WeatherBackground.swift */; };
+		FA01576D2F9B68C700E6EF80 /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0157652F9B68C700E6EF80 /* LottieView.swift */; };
+		FA01576E2F9B68C700E6EF80 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0157662F9B68C700E6EF80 /* SettingsView.swift */; };
+		FA0157762F9B69CE00E6EF80 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = FA0157752F9B69CE00E6EF80 /* Lottie */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +30,12 @@
 		74C930A62F99DA4A00045845 /* WeatherModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherModels.swift; sourceTree = "<group>"; };
 		74C930A72F99DA4A00045845 /* WeatherView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherView.swift; sourceTree = "<group>"; };
 		74C930A92F99DA4A00045845 /* WeatherAppRemixApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherAppRemixApp.swift; sourceTree = "<group>"; };
+		FA0157632F9B68C700E6EF80 /* cloudy.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = cloudy.json; sourceTree = "<group>"; };
+		FA0157642F9B68C700E6EF80 /* lightning.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = lightning.json; sourceTree = "<group>"; };
+		FA0157652F9B68C700E6EF80 /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
+		FA0157662F9B68C700E6EF80 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		FA0157672F9B68C700E6EF80 /* sun.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = sun.json; sourceTree = "<group>"; };
+		FA0157682F9B68C700E6EF80 /* WeatherBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherBackground.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -30,6 +43,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA0157762F9B69CE00E6EF80 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,6 +69,12 @@
 		74C930A82F99DA4A00045845 /* Weather */ = {
 			isa = PBXGroup;
 			children = (
+				FA0157632F9B68C700E6EF80 /* cloudy.json */,
+				FA0157642F9B68C700E6EF80 /* lightning.json */,
+				FA0157672F9B68C700E6EF80 /* sun.json */,
+				FA0157652F9B68C700E6EF80 /* LottieView.swift */,
+				FA0157662F9B68C700E6EF80 /* SettingsView.swift */,
+				FA0157682F9B68C700E6EF80 /* WeatherBackground.swift */,
 				74C930A32F99DA4A00045845 /* LocationProvider.swift */,
 				74C930A42F99DA4A00045845 /* MockWeather.swift */,
 				74C930A52F99DA4A00045845 /* OpenMeteoService.swift */,
@@ -90,6 +110,7 @@
 			);
 			name = "CH2-WeatherApp";
 			packageProductDependencies = (
+				FA0157752F9B69CE00E6EF80 /* Lottie */,
 			);
 			productName = "CH2-WeatherApp";
 			productReference = 74C63D2F2F99CE8700EB52F1 /* CH2-WeatherApp.app */;
@@ -120,6 +141,9 @@
 			);
 			mainGroup = 74C63D262F99CE8600EB52F1;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				FA0157742F9B69CE00E6EF80 /* XCRemoteSwiftPackageReference "lottie-ios" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 74C63D302F99CE8700EB52F1 /* Products */;
 			projectDirPath = "";
@@ -135,6 +159,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA0157692F9B68C700E6EF80 /* sun.json in Resources */,
+				FA01576A2F9B68C700E6EF80 /* lightning.json in Resources */,
+				FA01576B2F9B68C700E6EF80 /* cloudy.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -151,6 +178,9 @@
 				74C930B12F99DA4A00045845 /* WeatherAppRemixApp.swift in Sources */,
 				74C930B22F99DA4A00045845 /* WeatherView.swift in Sources */,
 				74C930B32F99DA4A00045845 /* WeatherModels.swift in Sources */,
+				FA01576C2F9B68C700E6EF80 /* WeatherBackground.swift in Sources */,
+				FA01576D2F9B68C700E6EF80 /* LottieView.swift in Sources */,
+				FA01576E2F9B68C700E6EF80 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,6 +205,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -211,6 +242,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -371,6 +403,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		FA0157742F9B69CE00E6EF80 /* XCRemoteSwiftPackageReference "lottie-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		FA0157752F9B69CE00E6EF80 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FA0157742F9B69CE00E6EF80 /* XCRemoteSwiftPackageReference "lottie-ios" */;
+			productName = Lottie;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 74C63D272F99CE8600EB52F1 /* Project object */;
 }

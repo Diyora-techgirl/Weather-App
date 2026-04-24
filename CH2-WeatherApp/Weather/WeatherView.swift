@@ -3,24 +3,45 @@ import Charts
 
 struct WeatherView: View {
 
+    // MARK: - STATE
     @State private var weather: WeatherSnapshot
-    @State private var selectedDayIndex: Int = 0
+    @State private var showSettings = false
     @State private var isLoading = false
+    @State private var selectedDayIndex: Int = 0
 
-    // MARK: - INIT (mock only for preview/start)
+    // MARK: - INIT
     init(initial: WeatherSnapshot = MockWeather.sample) {
         _weather = State(initialValue: initial)
     }
 
+    // MARK: - WEATHER CONDITION
+    private var condition: WeatherCondition {
+        switch weather.code {
+        case 0: return .clear
+        case 1: return .partlyCloudy
+        case 2, 3: return .clouds
+        case 45, 48: return .clouds
+        case 51...67, 80...82: return .rain
+        case 95, 96, 99: return .thunder
+        case 71...77: return .snow
+        default: return .clear
+        }
+    }
+
+    // MARK: - BODY
     var body: some View {
         ZStack {
-            backgroundGradient.ignoresSafeArea()
 
-            if isLoading {
-                ProgressView("Loading weather...")
-                    .foregroundStyle(.white)
-            } else {
-                ScrollView(showsIndicators: false) {
+            WeatherBackground(condition: condition)
+                .ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+
+                if isLoading {
+                    ProgressView()
+                        .foregroundStyle(.white)
+                        .padding(.top, 200)
+                } else {
                     VStack(spacing: 28) {
                         header
                         chart
@@ -32,117 +53,118 @@ struct WeatherView: View {
                     .padding(.bottom, 32)
                 }
             }
+
+            // Settings button overlay
+            VStack {
+                HStack {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape.fill")
+                            .font(.system(size: 20))
+                            .foregroundStyle(.white)
+                            .padding(10)
+                            .background(.black.opacity(0.4))
+                            .clipShape(Circle())
+                    }
+
+                    Spacer()
+                }
+                Spacer()
+            }
+            .padding(.top, 0)
+            .padding(.leading, 24)
         }
         .preferredColorScheme(.dark)
-
-        // 🔥 REAL API CALL
-        .task {
+        .sheet(isPresented: $showSettings) {
+            SettingsView()
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.hidden)
+                .presentationBackground(.clear)
+        }
+        .task(id: "load") {
             await loadWeather()
         }
     }
 
-    // MARK: - API LOADER
-
+    // MARK: - LOAD WEATHER
     private func loadWeather() async {
-        print("🌐 Starting API call...")
-
         isLoading = true
         defer { isLoading = false }
 
+        let provider = LocationProvider()
+        let resolved = try? await provider.resolveCurrent()
+
+        let lat = resolved?.latitude ?? -8.6705
+        let lon = resolved?.longitude ?? 115.2126
+        let name = resolved?.name ?? "Denpasar"
+
         do {
-            let result = try await OpenMeteoService.fetch(
-                lat: -8.5069,
-                lon: 115.2625,
-                name: "Ubud"
-            )
-
-            print("✅ API SUCCESS:", result.location)
-            print("🌡 Temp:", result.currentTemp)
-
+            let fresh = try await OpenMeteoService.fetch(lat: lat, lon: lon, name: name)
             await MainActor.run {
-                weather = result   // 🔥 THIS replaces mock
+                weather = fresh
             }
-
         } catch {
-            print("❌ API FAILED:", error)
+            print("❌ Weather fetch failed:", error)
         }
     }
 
     // MARK: - SELECTED DAY
-
     private var selectedDay: DayForecast {
         weather.days[selectedDayIndex]
     }
 
+    private var selectedHourly: [HourlyPoint] {
+        weather.hourly
+    }
+
     // MARK: - HEADER
-
     private var header: some View {
-        ZStack(alignment: .topLeading) {
+        ZStack {
 
-            HStack {
-                Spacer()
-
-                VStack(alignment: .trailing, spacing: 8) {
-                    Text(weather.advisory)
-                        .font(.footnote)
-                        .foregroundStyle(.black)
-                        .padding(.horizontal, 18)
-                        .padding(.vertical, 14)
-                        .background(
-                            Ellipse()
-                                .fill(.white.opacity(0.35))
-                                .blur(radius: 6)
-                        )
-
-                    Image(systemName: "figure.stand")
-                        .font(.system(size: 90))
-                        .foregroundStyle(.white.opacity(0.9))
-                }
-            }
-
+            // LEFT SIDE
             VStack(alignment: .leading, spacing: 4) {
-
                 Text(weather.location)
                     .font(.largeTitle)
                     .foregroundStyle(.white.opacity(0.85))
 
-                Text(headerWeekday)
-                    .font(.subheadline)
-                    .foregroundStyle(.white.opacity(0.6))
-
-                Text("\(headerTemp) °C")
+                Text("\(weather.currentTemp) °C")
                     .font(.system(size: 44))
                     .foregroundStyle(.white)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 180)
+
+            // CENTER CHARACTER + BUBBLE
+            ZStack {
+
+                Image(systemName: "figure.stand")
+                    .font(.system(size: 90))
+                    .foregroundStyle(.white.opacity(0.9))
+
+                VStack {
+                    Text(weather.advisory)
+                        .font(.footnote)
+                        .foregroundStyle(.black.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: 18)
+                        .fill(.white.opacity(0.85))
+                )
+                .frame(maxWidth: 180)
+                .offset(x: 90, y: -40)
+            }
+            .frame(maxWidth: .infinity)
         }
     }
 
-    private var headerWeekday: String {
-        let calendar = Calendar.current
-
-        if calendar.isDateInToday(selectedDay.date) { return "Today" }
-        if calendar.isDateInTomorrow(selectedDay.date) { return "Tomorrow" }
-
-        let f = DateFormatter()
-        f.dateFormat = "EEEE"
-        return f.string(from: selectedDay.date)
-    }
-
-    private var headerTemp: Int {
-        selectedHourly.map(\.temp).max() ?? weather.currentTemp
-    }
-
     // MARK: - CHART
-
     private var chart: some View {
-
-        let data = selectedHourly
-        let highlight = data.max(by: { $0.temp < $1.temp })
-
-        return Chart {
-
-            ForEach(data) { point in
+        Chart {
+            ForEach(selectedHourly) { point in
                 LineMark(
                     x: .value("Hour", point.hour),
                     y: .value("Temp", point.temp)
@@ -151,7 +173,7 @@ struct WeatherView: View {
                 .interpolationMethod(.catmullRom)
             }
 
-            if let h = highlight {
+            if let h = selectedHourly.max(by: { $0.temp < $1.temp }) {
                 PointMark(
                     x: .value("Hour", h.hour),
                     y: .value("Temp", h.temp)
@@ -162,17 +184,14 @@ struct WeatherView: View {
         .chartXScale(domain: 0...24)
         .chartYAxis(.hidden)
         .frame(height: 160)
-        .id(selectedDay.date)
+        .id(selectedDayIndex)
     }
 
     // MARK: - PILLS
-
     private var pills: some View {
         GlassEffectContainer(spacing: 6) {
             HStack(spacing: 6) {
-
                 ForEach(Array(weather.days.enumerated()), id: \.element.id) { index, day in
-
                     VStack(spacing: 8) {
                         Image(systemName: day.iconName)
                             .font(.title3)
@@ -195,25 +214,38 @@ struct WeatherView: View {
         }
     }
 
-    // MARK: - INFO CARD
-
+    // MARK: - INFO CARD (your version retained)
     private var infoCard: some View {
         VStack(alignment: .leading, spacing: 24) {
 
             HStack {
-                Text("Weather")
+                Text("Today's Sunset")
                     .font(.headline)
                     .foregroundStyle(.white)
 
                 Spacer()
+
+                Text(weather.sunset, format: .dateTime.month(.abbreviated).day().year())
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.7))
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Feels like:")
+                    .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.7))
 
-                Text("\(feelsLikeValue) °C")
+                Text("\(weather.feelsLike) °C")
+                    .font(.title2)
                     .foregroundStyle(.white)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("UV Index")
+                    .foregroundStyle(.white.opacity(0.7))
+
+                Text("\(weather.uvIndex)")
+                    .foregroundStyle(.orange)
             }
         }
         .padding(20)
@@ -223,64 +255,8 @@ struct WeatherView: View {
                 .fill(Color.black.opacity(0.55))
         )
     }
+}
 
-    private var feelsLikeValue: Int {
-        let data = selectedHourly
-        guard !data.isEmpty else { return weather.feelsLike }
-        return data.map { $0.temp }.reduce(0, +) / data.count
-    }
-
-    // MARK: - HOURLY FILTER
-
-    private var selectedHourly: [HourlyPoint] {
-
-        guard let raw = weather.raw else {
-            return weather.hourly
-        }
-
-        let calendar = Calendar.current
-        let selectedDate = selectedDay.date
-
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-
-        let times = raw.hourly.time
-        let temps = raw.hourly.temperature_2m
-        let rain = raw.hourly.precipitation
-
-        var result: [HourlyPoint] = []
-
-        for i in 0..<times.count {
-
-            guard let date = formatter.date(from: times[i]) else { continue }
-            guard calendar.isDate(date, inSameDayAs: selectedDate) else { continue }
-
-            let hour = calendar.component(.hour, from: date)
-
-            result.append(
-                HourlyPoint(
-                    hour: hour,
-                    temp: Int(temps[i].rounded()),
-                    rain: rain.indices.contains(i) ? rain[i] : 0
-                )
-            )
-        }
-
-        return result.sorted { $0.hour < $1.hour }
-    }
-
-    // MARK: - BACKGROUND
-
-    private var backgroundGradient: some View {
-        LinearGradient(
-            colors: [
-                Color(red: 0.35, green: 0.65, blue: 0.90),
-                Color(red: 0.95, green: 0.45, blue: 0.20),
-                Color.black
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
-    }
+#Preview {
+    WeatherView(initial: MockWeather.sample)
 }
