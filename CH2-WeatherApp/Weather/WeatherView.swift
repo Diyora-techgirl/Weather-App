@@ -7,6 +7,18 @@ struct WeatherView: View {
     @State private var weather: WeatherSnapshot
     @State private var showSettings = false
     @State private var selectedDayIndex: Int = 0
+    @State private var isLoading: Bool = false
+
+    @AppStorage("useCelsius") private var useCelsius: Bool = true
+    @AppStorage("locationMode") private var locationMode: LocationMode = .auto
+    @AppStorage("manualLocation") private var manualLocation: String = "Paris"
+
+    private var unitSymbol: String { useCelsius ? "°C" : "°F" }
+    private var locationKey: String { "\(locationMode.rawValue)|\(manualLocation)" }
+
+    private func displayTemp(_ celsius: Int) -> Int {
+        useCelsius ? celsius : Int((Double(celsius) * 9.0 / 5.0 + 32.0).rounded())
+    }
 
     // MARK: - INIT
     init(initial: WeatherSnapshot = MockWeather.sample) {
@@ -73,13 +85,29 @@ struct WeatherView: View {
             .padding(.leading, 24)
         }
         .preferredColorScheme(.dark)
-        .task(id: "load") { await loadWeather() }
+        .overlay {
+            if isLoading {
+                ProgressView()
+                    .progressViewStyle(.circular)
+                    .tint(.white)
+                    .scaleEffect(1.4)
+                    .padding(24)
+                    .background(.black.opacity(0.45), in: Circle())
+            }
+        }
+        .task(id: locationKey) { await loadWeather() }
     }
 
     // MARK: - LOAD
     private func loadWeather() async {
+        isLoading = true
+        defer { isLoading = false }
+
         let provider = LocationProvider()
-        let resolved = try? await provider.resolveCurrent()
+        let resolved: LocationProvider.Resolved? = switch locationMode {
+        case .auto:   try? await provider.resolveCurrent()
+        case .manual: try? await provider.resolve(city: manualLocation)
+        }
 
         let lat = resolved?.latitude ?? -8.6705
         let lon = resolved?.longitude ?? 115.2126
@@ -122,7 +150,7 @@ struct WeatherView: View {
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.6))
 
-                Text("\(headerTemp) °C")
+                Text("\(displayTemp(headerTemp)) \(unitSymbol)")
                     .font(.system(size: 44))
                     .foregroundStyle(.white)
             }
@@ -140,7 +168,7 @@ struct WeatherView: View {
             ForEach(data) { point in
                 LineMark(
                     x: .value("Hour", point.hour),
-                    y: .value("Temp", point.temp)
+                    y: .value("Temp", displayTemp(point.temp))
                 )
                 .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
                 .foregroundStyle(.white.opacity(0.75))
@@ -150,12 +178,12 @@ struct WeatherView: View {
             if let h = highlight {
                 PointMark(
                     x: .value("Hour", h.hour),
-                    y: .value("Temp", h.temp)
+                    y: .value("Temp", displayTemp(h.temp))
                 )
                 .symbolSize(220)
                 .foregroundStyle(.white.opacity(0.55))
                 .annotation(position: .top) {
-                    Text("\(h.temp)°")
+                    Text("\(displayTemp(h.temp))°")
                         .font(.caption)
                         .foregroundStyle(.white)
                 }
@@ -260,7 +288,7 @@ struct WeatherView: View {
                 Text("Feels like :")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.7))
-                Text("\(feelsLikeValue) °C")
+                Text("\(displayTemp(feelsLikeValue)) \(unitSymbol)")
                     .font(.title2)
                     .foregroundStyle(.white)
             }

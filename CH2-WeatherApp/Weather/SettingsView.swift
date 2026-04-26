@@ -18,9 +18,11 @@ enum LocationMode: String, CaseIterable {
 
 struct SettingsView: View {
 
-    @State private var locationMode: LocationMode = .auto
-    @State private var manualLocation: String = "Paris"
-    @State private var useCelsius: Bool = true
+    @AppStorage("locationMode") private var locationMode: LocationMode = .auto
+    @AppStorage("manualLocation") private var manualLocation: String = "Paris"
+    @AppStorage("useCelsius") private var useCelsius: Bool = true
+
+    @State private var manualLocationDraft: String = ""
 
     var body: some View {
         ZStack {
@@ -83,7 +85,9 @@ struct SettingsView: View {
                         }
 
                         if locationMode == .manual {
-                            TextField("Enter city", text: $manualLocation)
+                            TextField("Enter city", text: $manualLocationDraft)
+                                .submitLabel(.done)
+                                .onSubmit { manualLocation = manualLocationDraft }
                                 .padding(12)
                                 .foregroundStyle(.white)
                                 .tint(.white)
@@ -117,6 +121,7 @@ struct SettingsView: View {
                 Spacer()
             }
         }
+        .onAppear { manualLocationDraft = manualLocation }
     }
 
     @ViewBuilder
