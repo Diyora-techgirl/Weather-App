@@ -27,6 +27,18 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate {
         manager.desiredAccuracy = kCLLocationAccuracyKilometer
     }
 
+    func resolve(city: String) async throws -> Resolved {
+        let placemarks = try await CLGeocoder().geocodeAddressString(city)
+        guard let p = placemarks.first, let loc = p.location else {
+            throw Failure.unavailable
+        }
+        return Resolved(
+            latitude: loc.coordinate.latitude,
+            longitude: loc.coordinate.longitude,
+            name: p.locality ?? p.name ?? city
+        )
+    }
+
     func resolveCurrent() async throws -> Resolved {
         let status = await ensureAuthorized()
         guard status == .authorizedWhenInUse || status == .authorizedAlways else {
