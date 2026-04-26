@@ -147,7 +147,7 @@ enum OpenMeteoService {
 
     // MARK: - HELPERS
 
-    private static func uvAdvice(for uv: Int) -> String {
+    static func uvAdvice(for uv: Int) -> String {
         switch uv {
         case 0...2: return "Low — no protection needed"
         case 3...5: return "Wear sunscreen"
