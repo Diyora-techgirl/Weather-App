@@ -9,7 +9,6 @@ enum MockWeather {
         WeatherSnapshot(
             location: "Denpasar",
             currentTemp: 15,
-            advisory: "take umbrella yaa… , it's raining",
             hourly: [
                 HourlyPoint(hour: 0, temp: 22, rain: 1.2),
                 HourlyPoint(hour: 3, temp: 30, rain: 1.2),

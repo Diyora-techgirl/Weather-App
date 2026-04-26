@@ -128,36 +128,6 @@ struct WeatherView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 180)
-
-            // CENTER: character + speech cloud
-            ZStack {
-
-                Image(systemName: "figure.stand")
-                    .font(.system(size: 90))
-                    .foregroundStyle(.white.opacity(0.9))
-
-                VStack {
-                    Text(weather.advisory)
-                        .font(.footnote)
-                        .foregroundStyle(.black.opacity(0.85))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 10)
-                }
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 18)
-                            .fill(.white.opacity(0.85))
-
-                        RoundedRectangle(cornerRadius: 18)
-                            .stroke(.white.opacity(0.6), lineWidth: 1)
-                    }
-                )
-                .frame(maxWidth: 180)
-                .offset(x: 90, y: -40)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.top, 40)
         }
     }
 
