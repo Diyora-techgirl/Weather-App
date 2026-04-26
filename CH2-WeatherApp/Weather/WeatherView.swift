@@ -212,11 +212,11 @@ struct WeatherView: View {
         VStack(alignment: .leading, spacing: 24) {
 
             HStack {
-                Text("Today's Sunset")
+                Text("\(headerWeekday)'s Sunset")
                     .font(.headline)
                     .foregroundStyle(.white)
                 Spacer()
-                Text(weather.sunset, format: .dateTime.month(.abbreviated).day().year())
+                Text(selectedSunset, format: .dateTime.month(.abbreviated).day().year())
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.7))
             }
@@ -236,10 +236,10 @@ struct WeatherView: View {
                         .font(.subheadline)
                         .foregroundStyle(.white)
                     HStack(alignment: .top, spacing: 8) {
-                        Text("\(weather.uvIndex)")
+                        Text("\(selectedUVIndex)")
                             .font(.system(size: 32))
                             .foregroundStyle(.orange)
-                        Text(weather.uvAdvice)
+                        Text(selectedUVAdvice)
                             .font(.caption2)
                             .foregroundStyle(.yellow)
                             .frame(maxWidth: 90, alignment: .leading)
@@ -285,12 +285,16 @@ struct WeatherView: View {
             return weather.hourly
         }
 
-        let calendar = Calendar.current
+        let apiTimeZone = TimeZone(secondsFromGMT: raw.utc_offset_seconds) ?? .current
+        var apiCalendar = Calendar(identifier: .gregorian)
+        apiCalendar.timeZone = apiTimeZone
+
         let selectedDate = selectedDay.date
 
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
         formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = apiTimeZone
 
         let times = raw.hourly.time
         let temps = raw.hourly.temperature_2m
@@ -300,9 +304,9 @@ struct WeatherView: View {
 
         for i in 0..<times.count {
             guard let date = formatter.date(from: times[i]) else { continue }
-            guard calendar.isDate(date, inSameDayAs: selectedDate) else { continue }
+            guard apiCalendar.isDate(date, inSameDayAs: selectedDate) else { continue }
 
-            let hour = calendar.component(.hour, from: date)
+            let hour = apiCalendar.component(.hour, from: date)
 
             result.append(
                 HourlyPoint(
@@ -316,17 +320,47 @@ struct WeatherView: View {
         return result.sorted { $0.hour < $1.hour }
     }
 
+    // MARK: - SELECTED-DAY DERIVATIONS
+
+    private var selectedSunset: Date {
+        guard
+            let raw = weather.raw,
+            let iso = raw.daily.sunset[safe: selectedDayIndex]
+        else { return weather.sunset }
+        return parseSunset(iso, utcOffsetSeconds: raw.utc_offset_seconds)
+    }
+
+    private var selectedUVIndex: Int {
+        guard
+            let raw = weather.raw,
+            let uv = raw.daily.uv_index_max[safe: selectedDayIndex]
+        else { return weather.uvIndex }
+        return Int(uv.rounded())
+    }
+
+    private var selectedUVAdvice: String {
+        OpenMeteoService.uvAdvice(for: selectedUVIndex)
+    }
+
+    private func parseSunset(_ s: String, utcOffsetSeconds: Int) -> Date {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd'T'HH:mm"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = TimeZone(secondsFromGMT: utcOffsetSeconds) ?? .current
+        return f.date(from: s) ?? weather.sunset
+    }
+
     // Clock helpers
     private var sunsetClock: String {
         let f = DateFormatter()
         f.dateFormat = "h:mm"
-        return f.string(from: weather.sunset)
+        return f.string(from: selectedSunset)
     }
 
     private var sunsetAmPm: String {
         let f = DateFormatter()
         f.dateFormat = "a"
-        return f.string(from: weather.sunset)
+        return f.string(from: selectedSunset)
     }
 }
 
