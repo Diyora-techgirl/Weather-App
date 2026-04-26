@@ -87,7 +87,6 @@ enum OpenMeteoService {
         return WeatherSnapshot(
             location: name,
             currentTemp: Int(forecast.current.temperature_2m.rounded()),
-            advisory: advisory(for: forecast.current.weather_code),
 
             // ✅ FIX: REAL DATA HERE
             hourly: hourly,
@@ -167,17 +166,6 @@ enum OpenMeteoService {
         case ..<201: return "Unhealthy"
         case ..<301: return "Very Unhealthy"
         default: return "Hazardous"
-        }
-    }
-
-    private static func advisory(for code: Int) -> String {
-        switch code {
-        case 0: return "clear skies ahead"
-        case 1...3: return "a little cloudy, all good"
-        case 45, 48: return "foggy outside"
-        case 51...82: return "take umbrella yaa…"
-        case 95...99: return "thunderstorm outside"
-        default: return "keep an eye on the sky"
         }
     }
 

@@ -3,7 +3,6 @@ import Foundation
 struct WeatherSnapshot {
     var location: String
     var currentTemp: Int
-    var advisory: String
 
     var hourly: [HourlyPoint]
     var days: [DayForecast]
