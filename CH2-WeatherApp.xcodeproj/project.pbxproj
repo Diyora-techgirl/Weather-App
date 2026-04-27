@@ -18,8 +18,10 @@
 		FA01576B2F9B68C700E6EF80 /* cloudy.json in Resources */ = {isa = PBXBuildFile; fileRef = FA0157632F9B68C700E6EF80 /* cloudy.json */; };
 		FA01576C2F9B68C700E6EF80 /* WeatherBackground.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0157682F9B68C700E6EF80 /* WeatherBackground.swift */; };
 		FA01576D2F9B68C700E6EF80 /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0157652F9B68C700E6EF80 /* LottieView.swift */; };
-		FA01576E2F9B68C700E6EF80 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA0157662F9B68C700E6EF80 /* SettingsView.swift */; };
 		FA0157762F9B69CE00E6EF80 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = FA0157752F9B69CE00E6EF80 /* Lottie */; };
+		FA5AE9DD2F9F08D1004B4B3D /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5AE9DA2F9F08D1004B4B3D /* AppSettings.swift */; };
+		FA5AE9DE2F9F08D1004B4B3D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5AE9DC2F9F08D1004B4B3D /* SettingsView.swift */; };
+		FA5AE9DF2F9F08D1004B4B3D /* GeocodingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA5AE9DB2F9F08D1004B4B3D /* GeocodingService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,9 +35,11 @@
 		FA0157632F9B68C700E6EF80 /* cloudy.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = cloudy.json; sourceTree = "<group>"; };
 		FA0157642F9B68C700E6EF80 /* lightning.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = lightning.json; sourceTree = "<group>"; };
 		FA0157652F9B68C700E6EF80 /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
-		FA0157662F9B68C700E6EF80 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		FA0157672F9B68C700E6EF80 /* sun.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = sun.json; sourceTree = "<group>"; };
 		FA0157682F9B68C700E6EF80 /* WeatherBackground.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeatherBackground.swift; sourceTree = "<group>"; };
+		FA5AE9DA2F9F08D1004B4B3D /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		FA5AE9DB2F9F08D1004B4B3D /* GeocodingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeocodingService.swift; sourceTree = "<group>"; };
+		FA5AE9DC2F9F08D1004B4B3D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,13 +77,15 @@
 				FA0157642F9B68C700E6EF80 /* lightning.json */,
 				FA0157672F9B68C700E6EF80 /* sun.json */,
 				FA0157652F9B68C700E6EF80 /* LottieView.swift */,
-				FA0157662F9B68C700E6EF80 /* SettingsView.swift */,
 				FA0157682F9B68C700E6EF80 /* WeatherBackground.swift */,
 				74C930A32F99DA4A00045845 /* LocationProvider.swift */,
 				74C930A42F99DA4A00045845 /* MockWeather.swift */,
 				74C930A52F99DA4A00045845 /* OpenMeteoService.swift */,
 				74C930A62F99DA4A00045845 /* WeatherModels.swift */,
 				74C930A72F99DA4A00045845 /* WeatherView.swift */,
+				FA5AE9DA2F9F08D1004B4B3D /* AppSettings.swift */,
+				FA5AE9DB2F9F08D1004B4B3D /* GeocodingService.swift */,
+				FA5AE9DC2F9F08D1004B4B3D /* SettingsView.swift */,
 			);
 			path = Weather;
 			sourceTree = "<group>";
@@ -175,12 +181,14 @@
 				74C930AE2F99DA4A00045845 /* MockWeather.swift in Sources */,
 				74C930AF2F99DA4A00045845 /* LocationProvider.swift in Sources */,
 				74C930B02F99DA4A00045845 /* OpenMeteoService.swift in Sources */,
+				FA5AE9DD2F9F08D1004B4B3D /* AppSettings.swift in Sources */,
+				FA5AE9DE2F9F08D1004B4B3D /* SettingsView.swift in Sources */,
+				FA5AE9DF2F9F08D1004B4B3D /* GeocodingService.swift in Sources */,
 				74C930B12F99DA4A00045845 /* WeatherAppRemixApp.swift in Sources */,
 				74C930B22F99DA4A00045845 /* WeatherView.swift in Sources */,
 				74C930B32F99DA4A00045845 /* WeatherModels.swift in Sources */,
 				FA01576C2F9B68C700E6EF80 /* WeatherBackground.swift in Sources */,
 				FA01576D2F9B68C700E6EF80 /* LottieView.swift in Sources */,
-				FA01576E2F9B68C700E6EF80 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -196,7 +204,7 @@
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LB8V89KA2N;
+				DEVELOPMENT_TEAM = V2W2P98U9C;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CH2-WeatherApp/Info.plist";
@@ -233,7 +241,7 @@
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = LB8V89KA2N;
+				DEVELOPMENT_TEAM = V2W2P98U9C;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "CH2-WeatherApp/Info.plist";

@@ -7,6 +7,9 @@ struct WeatherView: View {
     @State private var weather: WeatherSnapshot
     @State private var showSettings = false
     @State private var selectedDayIndex: Int = 0
+    @State private var showLocationAlert = false
+    @State private var locationAlertText = ""
+    @EnvironmentObject var settings: AppSettings
 
     // MARK: - INIT
     init(initial: WeatherSnapshot = MockWeather.sample) {
@@ -46,10 +49,15 @@ struct WeatherView: View {
                 .padding(.bottom, 32)
             }
             .sheet(isPresented: $showSettings) {
-                SettingsView()
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.hidden)
-                    .presentationBackground(.clear)
+                SettingsView { city in
+                    Task {
+                        await loadWeatherForCity(city)
+                    }
+                }
+                .environmentObject(settings)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.hidden)
+                .presentationBackground(.clear)
             }
 
             VStack {
@@ -73,8 +81,35 @@ struct WeatherView: View {
             .padding(.leading, 24)
         }
         .preferredColorScheme(.dark)
-        .task(id: "load") { await loadWeather() }
-    }
+        .alert(locationAlertText, isPresented: $showLocationAlert) {
+            Button("OK", role: .cancel) { }
+        }
+        .task(id: settings.locationMode) {
+            switch settings.locationMode {
+            case .auto:
+                await loadWeather()
+
+            case .manual:
+                if !settings.manualCity.isEmpty {
+                    await loadWeatherForCity(settings.manualCity)
+                }
+            }
+        }
+        .onChange(of: settings.locationMode) { _, newValue in
+            Task {
+                switch newValue {
+
+                case .auto:
+                    settings.manualCity = ""
+                    await loadWeather()
+
+                case .manual:
+                    if !settings.manualCity.isEmpty {
+                        await loadWeatherForCity(settings.manualCity)
+                    }
+                }
+            }
+        }    }
 
     // MARK: - LOAD
     private func loadWeather() async {
@@ -87,9 +122,36 @@ struct WeatherView: View {
 
         if let fresh = try? await OpenMeteoService.fetch(lat: lat, lon: lon, name: name) {
             weather = fresh
+            showLocationUpdate("Using current location: \(name)")
         }
     }
 
+    private func loadWeatherForCity(_ city: String) async {
+        settings.locationMode = .manual
+        settings.manualCity = city
+
+        do {
+            let place = try await GeocodingService.resolve(city: city)
+
+            if let fresh = try? await OpenMeteoService.fetch(
+                lat: place.lat,
+                lon: place.lon,
+                name: place.name
+            ) {
+                weather = fresh
+                showLocationUpdate("Updated to \(place.name)")
+            }
+        } catch {
+            print("City not found")
+        }
+    }
+    
+    private func showLocationUpdate(_ text: String) {
+        locationAlertText = text
+        showLocationAlert = true
+    }
+    
+    
     // MARK: - SELECTED DAY
     private var selectedDay: DayForecast {
         weather.days[selectedDayIndex]
@@ -122,7 +184,7 @@ struct WeatherView: View {
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.6))
 
-                Text("\(headerTemp) °C")
+                Text(settings.formatTemp(headerTemp))
                     .font(.system(size: 44))
                     .foregroundStyle(.white)
             }
@@ -290,7 +352,7 @@ struct WeatherView: View {
                 Text("Feels like :")
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.7))
-                Text("\(feelsLikeValue) °C")
+                Text(settings.formatTemp(feelsLikeValue))
                     .font(.title2)
                     .foregroundStyle(.white)
             }
@@ -360,6 +422,9 @@ struct WeatherView: View {
     }
 }
 
+
 #Preview {
     WeatherView(initial: MockWeather.sample)
+        .environmentObject(AppSettings())
+
 }

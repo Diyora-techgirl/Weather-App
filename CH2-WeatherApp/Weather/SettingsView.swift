@@ -6,7 +6,6 @@
 //
 
 
-// Nothing is connected. UI only for now
 
 
 import Foundation
