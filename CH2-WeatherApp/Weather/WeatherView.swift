@@ -8,6 +8,7 @@ struct WeatherView: View {
     @State private var showSettings = false
     @State private var selectedDayIndex: Int = 0
     @State private var isLoading: Bool = false
+    @State private var draggedHour: Double? = nil
 
     @AppStorage("useCelsius") private var useCelsius: Bool = true
     @AppStorage("locationMode") private var locationMode: LocationMode = .auto
@@ -162,48 +163,114 @@ struct WeatherView: View {
     // MARK: - CHART
     private var chart: some View {
         let data = selectedHourly
-        let highlight = data.max(by: { $0.temp < $1.temp })
+        let maxPoint = data.max(by: { $0.temp < $1.temp })
+        let activeHour: Double? = draggedHour ?? maxPoint.map { Double($0.hour) }
+        let activeTemp: Double? = activeHour.flatMap { interpolatedTemp(at: $0, in: data) }
+
+        let displayedTemps = data.map { displayTemp($0.temp) }
+        let yMin = (displayedTemps.min() ?? 0) - 4
+        let yMax = (displayedTemps.max() ?? 0) + 6
 
         return Chart {
             ForEach(data) { point in
                 LineMark(
-                    x: .value("Hour", point.hour),
+                    x: .value("Hour", Double(point.hour)),
                     y: .value("Temp", displayTemp(point.temp))
                 )
                 .lineStyle(StrokeStyle(lineWidth: 2, dash: [5, 5]))
                 .foregroundStyle(.white.opacity(0.75))
                 .interpolationMethod(.catmullRom)
             }
-
-            if let h = highlight {
-                PointMark(
-                    x: .value("Hour", h.hour),
-                    y: .value("Temp", displayTemp(h.temp))
-                )
-                .symbolSize(220)
-                .foregroundStyle(.white.opacity(0.55))
-                .annotation(position: .top) {
-                    Text("\(displayTemp(h.temp))°")
-                        .font(.caption)
-                        .foregroundStyle(.white)
-                }
-            }
         }
         .chartXScale(domain: 0...24)
-        .chartXAxis {
-            AxisMarks(values: [0, 6, 12, 18, 24]) { value in
-                AxisValueLabel {
-                    if let hour = value.as(Int.self) {
-                        Text(String(format: "%02d", hour % 24))
-                            .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.7))
+        .chartYScale(domain: yMin...yMax)
+        .chartXAxis(.hidden)
+        .chartYAxis(.hidden)
+        .chartPlotStyle { plot in
+            plot.overlay(alignment: .bottom) {
+                Rectangle()
+                    .fill(.white.opacity(0.35))
+                    .frame(height: 1)
+            }
+        }
+        .chartOverlay { proxy in
+            GeometryReader { geo in
+                let plotRect: CGRect = proxy.plotFrame.map { geo[$0] } ?? .zero
+
+                ZStack(alignment: .topLeading) {
+                    Rectangle()
+                        .fill(.clear)
+                        .contentShape(Rectangle())
+                        .gesture(
+                            DragGesture(minimumDistance: 0)
+                                .onChanged { value in
+                                    let localX = value.location.x - plotRect.origin.x
+                                    if let hour: Double = proxy.value(atX: localX) {
+                                        draggedHour = min(max(hour, 0), 24)
+                                    }
+                                }
+                        )
+
+                    if let hour = activeHour,
+                       let temp = activeTemp,
+                       let xPos = proxy.position(forX: hour),
+                       let yPos = proxy.position(forY: displayTemp(Int(temp.rounded())))
+                    {
+                        let absX = plotRect.origin.x + xPos
+                        let absY = plotRect.origin.y + yPos
+
+                        Rectangle()
+                            .fill(.white.opacity(0.35))
+                            .frame(width: 1, height: plotRect.height)
+                            .position(x: absX, y: plotRect.origin.y + plotRect.height / 2)
+
+                        Circle()
+                            .fill(.white.opacity(0.55))
+                            .frame(width: 16, height: 16)
+                            .position(x: absX, y: absY)
+
+                        VStack(spacing: 2) {
+                            Text(hourLabel(hour))
+                                .font(.caption2)
+                                .foregroundStyle(.white.opacity(0.7))
+                            Text("\(displayTemp(Int(temp.rounded())))°")
+                                .font(.caption)
+                                .foregroundStyle(.white)
+                        }
+                        .fixedSize()
+                        .position(x: absX, y: max(absY - 28, plotRect.origin.y + 14))
                     }
                 }
             }
         }
-        .chartYAxis(.hidden)
         .frame(height: 160)
         .id(selectedDay.date)
+        .onChange(of: selectedDayIndex) { _, _ in
+            draggedHour = nil
+        }
+    }
+
+    private func interpolatedTemp(at hour: Double, in data: [HourlyPoint]) -> Double? {
+        guard !data.isEmpty else { return nil }
+        let sorted = data.sorted { $0.hour < $1.hour }
+        if let exact = sorted.first(where: { Double($0.hour) == hour }) {
+            return Double(exact.temp)
+        }
+        guard
+            let upper = sorted.first(where: { Double($0.hour) >= hour }),
+            let lower = sorted.last(where: { Double($0.hour) <= hour })
+        else {
+            return sorted.last.map { Double($0.temp) } ?? sorted.first.map { Double($0.temp) }
+        }
+        let span = Double(upper.hour - lower.hour)
+        guard span > 0 else { return Double(lower.temp) }
+        let t = (hour - Double(lower.hour)) / span
+        return Double(lower.temp) + t * Double(upper.temp - lower.temp)
+    }
+
+    private func hourLabel(_ hour: Double) -> String {
+        let h = Int(hour.rounded()) % 24
+        return String(format: "%02d:00", h)
     }
 
     // MARK: - PILLS (tappable)
@@ -214,7 +281,7 @@ struct WeatherView: View {
                     VStack(spacing: 8) {
                         Image(systemName: day.iconName)
                             .font(.title3)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(tint(for: day.iconName))
 
                         Text(day.label)
                             .font(.footnote)
@@ -244,7 +311,7 @@ struct WeatherView: View {
                     .font(.headline)
                     .foregroundStyle(.white)
                 Spacer()
-                Text(selectedSunset, format: .dateTime.month(.abbreviated).day().year())
+                Text(sunsetDateText)
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.7))
             }
@@ -358,6 +425,13 @@ struct WeatherView: View {
         return parseSunset(iso, utcOffsetSeconds: raw.utc_offset_seconds)
     }
 
+    private var locationTimeZone: TimeZone {
+        if let raw = weather.raw {
+            return TimeZone(secondsFromGMT: raw.utc_offset_seconds) ?? .current
+        }
+        return .current
+    }
+
     private var selectedUVIndex: Int {
         guard
             let raw = weather.raw,
@@ -382,12 +456,37 @@ struct WeatherView: View {
     private var sunsetClock: String {
         let f = DateFormatter()
         f.dateFormat = "h:mm"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = locationTimeZone
         return f.string(from: selectedSunset)
     }
 
     private var sunsetAmPm: String {
         let f = DateFormatter()
         f.dateFormat = "a"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = locationTimeZone
+        return f.string(from: selectedSunset)
+    }
+
+    private func tint(for iconName: String) -> Color {
+        switch iconName {
+        case "sun.min.fill", "sun.max.fill": return .yellow
+        case "cloud.sun.fill": return .orange
+        case "cloud.fog.fill": return Color(white: 0.75)
+        case "cloud.rain.fill": return .blue
+        case "cloud.bolt.fill": return .purple
+        case "cloud.snow.fill": return Color(red: 0.85, green: 0.95, blue: 1.0)
+        case "cloud.fill": return Color(white: 0.85)
+        default: return .white
+        }
+    }
+
+    private var sunsetDateText: String {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d, yyyy"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = locationTimeZone
         return f.string(from: selectedSunset)
     }
 }
