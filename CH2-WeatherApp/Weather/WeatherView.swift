@@ -156,7 +156,7 @@ struct WeatherView: View {
                     .foregroundStyle(.white)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.top, 180)
+            .padding(.top, 90)
         }
     }
 
