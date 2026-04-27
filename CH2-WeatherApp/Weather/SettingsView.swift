@@ -9,19 +9,15 @@
 // Nothing is connected. UI only for now
 
 
+import Foundation
 import SwiftUI
 
-enum LocationMode: String, CaseIterable {
-    case auto = "Auto"
-    case manual = "Manual"
-}
 
 struct SettingsView: View {
 
-    @State private var locationMode: LocationMode = .auto
-    @State private var manualLocation: String = "Paris"
-    @State private var useCelsius: Bool = true
-
+    @EnvironmentObject var settings: AppSettings
+    var onCitySelected: (String) -> Void
+    
     var body: some View {
         ZStack {
             // background blur
@@ -51,7 +47,7 @@ struct SettingsView: View {
 
                         Spacer()
 
-                        Picker("", selection: $useCelsius) {
+                        Picker("", selection: $settings.useCelsius) {
                             Text("°C").tag(true)
                             Text("°F").tag(false)
                         }
@@ -73,7 +69,7 @@ struct SettingsView: View {
 
                             Spacer()
 
-                            Picker("", selection: $locationMode) {
+                            Picker("", selection: $settings.locationMode) {
                                 ForEach(LocationMode.allCases, id: \.self) { mode in
                                     Text(mode.rawValue).tag(mode)
                                 }
@@ -82,8 +78,8 @@ struct SettingsView: View {
                             .frame(width: 160)
                         }
 
-                        if locationMode == .manual {
-                            TextField("Enter city", text: $manualLocation)
+                        if settings.locationMode == .manual {
+                            TextField("Enter city", text: $settings.manualCity)
                                 .padding(12)
                                 .foregroundStyle(.white)
                                 .tint(.white)
@@ -95,6 +91,14 @@ struct SettingsView: View {
                                                 .stroke(.white.opacity(0.15), lineWidth: 1)
                                         )
                                 }
+                            Button("Apply") {
+                                onCitySelected(settings.manualCity)
+                            }
+                            .padding(10)
+                            .frame(maxWidth: .infinity)
+                            .background(.white.opacity(0.2))
+                            .cornerRadius(12)
+                            .foregroundStyle(.white)
                         }
                     }
                     .padding(12)
@@ -132,4 +136,9 @@ struct SettingsView: View {
                 .fontWeight(.medium)
         }
     }
+}
+
+#Preview {
+    SettingsView { _ in }
+        .environmentObject(AppSettings())
 }
