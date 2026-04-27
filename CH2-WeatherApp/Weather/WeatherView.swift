@@ -214,7 +214,7 @@ struct WeatherView: View {
                     VStack(spacing: 8) {
                         Image(systemName: day.iconName)
                             .font(.title3)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(tint(for: day.iconName))
 
                         Text(day.label)
                             .font(.footnote)
@@ -244,7 +244,7 @@ struct WeatherView: View {
                     .font(.headline)
                     .foregroundStyle(.white)
                 Spacer()
-                Text(selectedSunset, format: .dateTime.month(.abbreviated).day().year())
+                Text(sunsetDateText)
                     .font(.subheadline)
                     .foregroundStyle(.white.opacity(0.7))
             }
@@ -358,6 +358,13 @@ struct WeatherView: View {
         return parseSunset(iso, utcOffsetSeconds: raw.utc_offset_seconds)
     }
 
+    private var locationTimeZone: TimeZone {
+        if let raw = weather.raw {
+            return TimeZone(secondsFromGMT: raw.utc_offset_seconds) ?? .current
+        }
+        return .current
+    }
+
     private var selectedUVIndex: Int {
         guard
             let raw = weather.raw,
@@ -382,12 +389,37 @@ struct WeatherView: View {
     private var sunsetClock: String {
         let f = DateFormatter()
         f.dateFormat = "h:mm"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = locationTimeZone
         return f.string(from: selectedSunset)
     }
 
     private var sunsetAmPm: String {
         let f = DateFormatter()
         f.dateFormat = "a"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = locationTimeZone
+        return f.string(from: selectedSunset)
+    }
+
+    private func tint(for iconName: String) -> Color {
+        switch iconName {
+        case "sun.min.fill", "sun.max.fill": return .yellow
+        case "cloud.sun.fill": return .orange
+        case "cloud.fog.fill": return Color(white: 0.75)
+        case "cloud.rain.fill": return .blue
+        case "cloud.bolt.fill": return .purple
+        case "cloud.snow.fill": return Color(red: 0.85, green: 0.95, blue: 1.0)
+        case "cloud.fill": return Color(white: 0.85)
+        default: return .white
+        }
+    }
+
+    private var sunsetDateText: String {
+        let f = DateFormatter()
+        f.dateFormat = "MMM d, yyyy"
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = locationTimeZone
         return f.string(from: selectedSunset)
     }
 }
